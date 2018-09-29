@@ -29,6 +29,10 @@
       "phone":"86-13300000000",   // 如果 phoneAuth 为 false，此字段不返回
     }
 
+错误码:
+
+900 (token error)
+
 ### 2. 用户授权
 
 > GET /user/auth/{biyToken}
