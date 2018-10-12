@@ -15,21 +15,15 @@ public class Application {
     SpringApplication.run(Application.class, args);
   }
 
-  /**
-   * TODO 这里运行跨域访问，方便测试
-   */
+  // TODO 允许跨域访问，方便调试
   @Bean
   public CorsFilter corsFilter() {
-    UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-    source.registerCorsConfiguration("/**", buildConfig()); // 4
-    return new CorsFilter(source);
-  }
-
-  private CorsConfiguration buildConfig() {
-    CorsConfiguration corsConfiguration = new CorsConfiguration();
-    corsConfiguration.addAllowedOrigin("*");
-    corsConfiguration.addAllowedHeader("*");
-    corsConfiguration.addAllowedMethod("*");
-    return corsConfiguration;
+    CorsConfiguration c = new CorsConfiguration();
+    c.addAllowedOrigin("*");
+    c.addAllowedHeader("*");
+    c.addAllowedMethod("*");
+    UrlBasedCorsConfigurationSource s = new UrlBasedCorsConfigurationSource();
+    s.registerCorsConfiguration("/**", c);
+    return new CorsFilter(s);
   }
 }

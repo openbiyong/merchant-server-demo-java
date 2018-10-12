@@ -67,7 +67,7 @@ public class DemoController {
         req1.setToken(user.token);
         biYongMerchantService.biyongUserUpdate(req1);
       } catch (Exception e) {
-        // TODO 上报失败异常处理
+        // TODO 失败异常处理
         e.printStackTrace();
       }
     });
