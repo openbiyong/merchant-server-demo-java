@@ -47,18 +47,21 @@ public class HttpClient extends MessageCipher {
       Utils.MerchantRequest r = clientEncrypt(data);
       wr.write(r.getData());
       wr.flush();
-      wr.close();
       int responseCode = connection.getResponseCode();
-      switch (responseCode) {
-        case 200:
-          return new String(
-              clientDecrypt(readInputStream(connection.getInputStream()), r.aes),
-              CHARSET_UTF_8);
-        default:
-          // 封装了网络异常等错误
-          System.out.println(
-              new String(readInputStream(connection.getErrorStream()), CHARSET_UTF_8));
-          return wrapErrorMessage(responseCode);
+      try {
+        switch (responseCode) {
+          case 200:
+            return new String(
+                clientDecrypt(readInputStream(connection.getInputStream()), r.aes),
+                CHARSET_UTF_8);
+          default:
+            // 封装了网络异常等错误
+            System.out.println(
+                new String(readInputStream(connection.getErrorStream()), CHARSET_UTF_8));
+            return wrapErrorMessage(responseCode);
+        }
+      } finally {
+        wr.close();
       }
     } catch (IOException e) {
       throw new RuntimeException(e);
