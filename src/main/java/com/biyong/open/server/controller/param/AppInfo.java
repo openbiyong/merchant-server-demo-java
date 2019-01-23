@@ -5,6 +5,7 @@ public class AppInfo {
   private String privateKey;
   private String biyongPublicKey;
   private String apiUrl;
+  private String serverUrl;
 
   public String getAppId() {
     return appId;
@@ -36,5 +37,13 @@ public class AppInfo {
 
   public void setApiUrl(String apiUrl) {
     this.apiUrl = apiUrl;
+  }
+
+  public String getServerUrl() {
+    return serverUrl;
+  }
+
+  public void setServerUrl(String serverUrl) {
+    this.serverUrl = serverUrl;
   }
 }

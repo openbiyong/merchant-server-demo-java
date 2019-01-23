@@ -1,41 +1,35 @@
-# App后台 Demo
+# 商户对接 Demo
 
-返回值统一格式：
+## Quick Start
+
+#### 1. 此Demo基于 Java 8 开发，使用 maven 管理依赖包
+
+打包命令
+
+    mvn clean install -Dmaven.test.skip=true
+
+#### 2. 启动应用
+
+    java -jar merchant-server-demo-1.1.0.jar
+
+
+#### 3. 使用前需要调用接口初始化 App 信息。以下是使用 curl 命令在本地初始化应用。参见`AppController`。
+
+    curl http://127.0.0.1:25000/app/setup -X POST -H 'Content-Type: application/json' -d '
+    {
+      "appId":"填写你的appId",
+      "privateKey":"填写你的私钥",
+      "biyongPublicKey":"填写BiYong为你的App提供的公钥",
+      "apiUrl":"填写BiYong后台访问url",
+      "serverUrl":"填写本服务的访问url"
+    }'
     
-    {
-      "code":"200",             // 200 代表接口请求成功
-      "msg":"",                 // 错误信息，请求成功无此字段
-      "data": {}                // JSON格式业务数据，每个接口返回数据格式请参考以下文档
-    }
+#### 4. 启动后可直接访问测试页面。参见`WebController`。
 
-使用前需要调用接口初始化 App 信息，具体方式请查看 AppController 类
+授权测试页面
 
-## DemoController 提供如下接口供商户进行测试
+    http://127.0.0.1:25000/page/auth
 
-### 1. 登录
-
-> GET /user/login/{token}
-
-返回data:
-
-    {
-      "auth":"true",              // true/false 是否有查看此用户信息权限
-      "pubInfoAuth":"true",       // true/false 是否有查看用户公开信息权限
-      "firstName":"John",         // 如果 pubInfoAuth 为 false，此字段不返回
-      "lastName":"Due",           // 如果 pubInfoAuth 为 false，此字段不返回
-      "selfieUrl":"http://..."    // 用户头像链接，如果 pubInfoAuth 为 false 或用户无头像，此字段不返回
-      "isKycPass":"true",         // 如果 pubInfoAuth 为 false，此字段不返回，true/false 用户是否进行了实名认证
-      "phoneAuth":"true",         // true/false 是否有查看用户手机号
-      "phone":"86-13300000000",   // 如果 phoneAuth 为 false，此字段不返回
-    }
-
-错误码:
-
-900 (token error)
-
-### 2. 用户授权
-
-> GET /user/auth/{biyToken}
-
-返回data: 与接口 `1.登录` 相同
-
+支付测试页面
+    
+    http://127.0.0.1:25000/page/pay

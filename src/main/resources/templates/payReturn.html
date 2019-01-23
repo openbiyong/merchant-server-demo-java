@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.w3.org/1999/xhtml">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no"/>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-status-bar-style" content="black"/>
+  <meta name="format-detection" content="telephone=no, email=no"/>
+  <title>demo支付返回页面</title>
+  <script src="https://apps.bdimg.com/libs/jquery/2.1.4/jquery.min.js"></script>
+</head>
+<body>
+<div style="font-size: 32px;text-align: center;margin: 0 auto;margin-top: 80px;">demo支付返回页面</div>
+<div style="display: none;" id="serverUrl" th:utext="${serverUrl}"></div>
+<div style="display: none;" id="appId" th:utext="${appId}"></div>
+</body>
+<script type="text/javascript" charset="utf-8" async defer>
+  const DEFAULT_TIMEOUT = 30000;
+
+  /**
+   * 获取url参数
+   */
+  function getUrlParam(name) {
+    var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)");
+    // 匹配目标参数
+    var r = window.location.search.substr(1).match(reg);
+    // 返回参数值
+    if (r != null) return unescape(r[2]); return null;
+  }
+
+  /**
+   * ajax GET
+   */
+  function getData(_url, param='') {
+    let serverUrl = $("#serverUrl").text();
+    if (!serverUrl) {
+      alert("未设置serverUrl");
+      return;
+    }
+
+    console.log('getData:',_url+param)
+    let deferred = $.Deferred();
+
+    $.ajax({
+      url: serverUrl+_url+param,
+      type: 'GET',
+      dataType: 'JSON',
+      headers: {
+        'accept-language': 'zh-CN',
+        'Cache-Control' : 'max-age=0'
+      },
+      contentType: 'application/x-www-form-urlencoded',
+      async: param.async || true,
+      timeout: param.timeout || DEFAULT_TIMEOUT,
+      success(rep) {
+        console.log('success')
+        deferred.resolveWith(this, [rep]);
+      },
+      error(xhr, type) {
+        console.log('err')
+        deferred.rejectWith(this, ['网络异常，请稍后再试']);
+      }
+    });
+
+    return deferred.promise();
+  }
+
+  /**
+   * 用户授权接口
+   */
+  function returnQuery(param) {
+    return getData('/b-pay/returnQuery/',param)
+  }
+
+  $(document).ready(function(){
+    // 进入页面，获取url上的token 及 biytoken
+    let outOrderCode = getUrlParam('outOrderCode');
+
+    /**
+     * url上有biytoken，代表从app授权回来
+     * 调用户授权接口（传参：biytoken，返回：用户信息）
+     */
+    if(outOrderCode) {
+      // 调用用户授权接口
+      returnQuery(outOrderCode).done(data=>{
+        if(data.code == 200) {
+          if (data.data)
+            alert("恭喜你，成功买到" + data.data.orderName +"\n\n" +JSON.stringify(data.data))
+          else
+            alert("你好像还没有支付哟");
+        } else {
+          alert(data.msg)
+        }
+      }).fail(data=>{
+        alert("请求失败:" + data.code);
+      })
+    } else {
+      alert("where is my outOrderCode?")
+    }
+  });
+</script>
+</html>

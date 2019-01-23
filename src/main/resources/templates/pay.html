@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.w3.org/1999/xhtml">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no"/>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-status-bar-style" content="black"/>
+  <meta name="format-detection" content="telephone=no, email=no"/>
+  <title>demo授权测试页面</title>
+  <script src="https://apps.bdimg.com/libs/jquery/2.1.4/jquery.min.js"></script>
+</head>
+<body>
+<div style="font-size: 32px;text-align: center;margin: 0 auto;margin-top: 80px;">demo支付测试页面</div>
+<div style="display: none;" id="serverUrl" th:utext="${serverUrl}"></div>
+<div style="display: none;" id="appId" th:utext="${appId}"></div>
+<div style="text-align: center; margin-top: 100px"><button style="font-size: 32px;" onclick="createOrder()">创建订单</button></div>
+</body>
+<script type="text/javascript" charset="utf-8" async defer>
+  const DEFAULT_TIMEOUT = 30000;
+  const RETURN_URI = '/page/payReturn';
+
+  /**
+   * 获取url参数
+   */
+  function getUrlParam(name) {
+    var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)");
+    // 匹配目标参数
+    var r = window.location.search.substr(1).match(reg);
+    // 返回参数值
+    if (r != null) {
+      return unescape(r[2]);
+    }
+    return null;
+  }
+
+  /**
+   * ajax GET
+   */
+  function getData(_url, param='') {
+    let serverUrl = $("#serverUrl").text();
+    if (!serverUrl) {
+      alert("未设置serverUrl");
+      return;
+    }
+
+    let deferred = $.Deferred();
+
+    $.ajax({
+      url: serverUrl + _url + param,
+      type: 'GET',
+      dataType: 'JSON',
+      headers: {
+        'accept-language': 'zh-CN',
+        'Cache-Control': 'max-age=0'
+      },
+      contentType: 'application/json',
+      async: param.async || true,
+      timeout: param.timeout || DEFAULT_TIMEOUT,
+      success(rep) {
+        console.log('success')
+        deferred.resolveWith(this, [rep]);
+      },
+      error(xhr, type) {
+        console.log('err')
+        deferred.rejectWith(this, ['网络异常，请稍后再试']);
+      }
+    });
+
+    return deferred.promise();
+  }
+
+  /**
+   * 创建订单
+   */
+  function createOrder() {
+    let serverUrl = $("#serverUrl").text();
+    if (!serverUrl) {
+      alert("未设置serverUrl");
+      return;
+    }
+    getData('/b-pay/create/').done(data=>{
+      if(data.code == 200) {
+        alert('订单创建成功\n'+JSON.stringify(data.data))
+        setTimeout(function () {
+          location.href = "biyong://biypay?payToken=" + data.data.payToken +
+              "&callbackUrl=" + encodeURIComponent(serverUrl + RETURN_URI + "?outOrderCode=" + data.data.outOrderCode);
+        }, 100);
+      } else {
+        alert('订单创建失败\n'+data.msg)
+      }
+    });
+  }
+
+  /**
+   * 页面业务逻辑
+   */
+  $(document).ready(function () {
+  });
+</script>
+</html>

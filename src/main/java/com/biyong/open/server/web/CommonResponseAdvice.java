@@ -31,7 +31,8 @@ public class CommonResponseAdvice implements ResponseBodyAdvice<Object> {
       ServerHttpResponse response) {
     Class clazz = methodParameter.getParameterType();
     if (clazz.equals(BusinessResult.class) ||
-        clazz.equals(ResponseEntity.class)) {
+        clazz.equals(ResponseEntity.class) ||
+        clazz.equals(String.class)) {
       return body;
     } else {
       return BusinessResult.success(body);

@@ -50,11 +50,11 @@ public class UserInfoResp {
     this.selfieUrl = selfieUrl;
   }
 
-  public Boolean getKycPass() {
+  public Boolean getIsKycPass() {
     return isKycPass;
   }
 
-  public void setKycPass(Boolean kycPass) {
+  public void setIsKycPass(Boolean kycPass) {
     isKycPass = kycPass;
   }
 

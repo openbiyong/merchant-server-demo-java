@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.w3.org/1999/xhtml">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no"/>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-status-bar-style" content="black"/>
+  <meta name="format-detection" content="telephone=no, email=no"/>
+  <title>demo授权测试页面</title>
+  <script src="https://apps.bdimg.com/libs/jquery/2.1.4/jquery.min.js"></script>
+</head>
+<body>
+<div style="font-size: 32px;text-align: center;margin: 0 auto;margin-top: 80px;">demo授权测试页面</div>
+<div style="display: none;" id="serverUrl" th:utext="${serverUrl}"></div>
+<div style="display: none;" id="appId" th:utext="${appId}"></div>
+</body>
+<script type="text/javascript" charset="utf-8" async defer>
+  const DEFAULT_TIMEOUT = 30000;
+  const PAGE_URI = '/page/auth';
+  /**
+   * 获取url参数
+   */
+  function getUrlParam(name) {
+    var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)");
+    // 匹配目标参数
+    var r = window.location.search.substr(1).match(reg);
+    // 返回参数值
+    if (r != null) return unescape(r[2]); return null;
+  }
+
+  /**
+   * ajax GET
+   */
+  function getData(_url, param='') {
+    let serverUrl = $("#serverUrl").text();
+    if (!serverUrl) {
+      alert("未设置serverUrl");
+      return;
+    }
+    let deferred = $.Deferred();
+
+    $.ajax({
+      url: serverUrl+_url+param,
+      type: 'GET',
+      dataType: 'JSON',
+      headers: {
+        'accept-language': 'zh-CN',
+        'Cache-Control' : 'max-age=0'
+      },
+      contentType: 'application/x-www-form-urlencoded',
+      async: param.async || true,
+      timeout: param.timeout || DEFAULT_TIMEOUT,
+      success(rep) {
+        console.log('success');
+        deferred.resolveWith(this, [rep]);
+      },
+      error(xhr, type) {
+        console.log('err');
+        deferred.rejectWith(this, ['网络异常，请稍后再试']);
+      }
+    });
+
+    return deferred.promise();
+  }
+
+  /**
+   * 登录接口，获取用户信息
+   */
+  function login(param) {
+    return getData('/user/login/',param)
+  }
+
+  /**
+   * 用户授权接口
+   */
+  function goAuth(param) {
+    return getData('/user/auth/',param)
+  }
+
+  /**
+   * 页面业务逻辑
+   */
+  $(document).ready(function(){
+    // 进入页面，获取url上的token 及 biytoken
+    let tokenFromUrl = getUrlParam('token') || '';
+    console.log('tokenFromUrl:',tokenFromUrl);
+
+    let biytoken = getUrlParam('biytoken') || '';
+    console.log('biytoken:',biytoken);
+
+    /**
+     * url上有biytoken，代表从app授权回来
+     * 调用户授权接口（传参：biytoken，返回：用户信息）
+     */
+    if(biytoken) {
+      console.log('has biytoken:',biytoken);
+      // 调用用户授权接口
+      goAuth(biytoken).done(data=>{
+        if(data.code == 200) {
+        alert("请求用户基本信息成功\n\n" + JSON.stringify(data.data))
+      } else {
+        alert(data.msg)
+      }
+      }).fail(data=>{
+        alert('有biytoken（从app授权回来），请求登录接口失败');
+      })
+    }
+    /**
+     * url上有token
+     * 调用登录接口，获取用户信息（传参：token，根据返回提示是否成功）
+     */
+    else if(tokenFromUrl) {
+      login(tokenFromUrl).done(data=>{
+        if(data.code == 200) {
+          alert("请求用户基本信息成功\n\n" + JSON.stringify(data.data))
+        } else if (data.code == 900) {
+          // 本服务未缓存用户信息
+          jumpAuth();
+        } else {
+          alert(data.msg)
+        }
+      }).fail(data=>{
+          alert('无token，请求用户基本信息失败');
+      });
+    }
+    /**
+     * url里无token 且 无biytoken，则：
+     * 向app发起授权（传参：商户id，返回：biytoken）
+     */
+    else {
+      jumpAuth();
+    }
+  });
+
+  function jumpAuth() {
+    let appId = $("#appId").text();
+    if (!appId) {
+      alert("未设置appId");
+      return;
+    }
+    let serverUrl = $("#serverUrl").text();
+    if (!serverUrl) {
+      alert("未设置serverUrl");
+      return;
+    }
+    jumpUrl = encodeURIComponent(serverUrl + PAGE_URI);
+    setTimeout(function () {
+      location.href = "biyong://authorApp?url=" + jumpUrl + "&appid=" + appId + "&userauth=PUBLIC_INFO";
+    }, 100);
+  }
+</script>
+</html>

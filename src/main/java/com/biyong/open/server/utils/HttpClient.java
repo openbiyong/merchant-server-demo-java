@@ -2,10 +2,12 @@ package com.biyong.open.server.utils;
 
 import static com.biyong.open.server.utils.Utils.CHARSET_UTF_8;
 import static com.biyong.open.server.utils.Utils.readInputStream;
+import static java.util.Optional.ofNullable;
 
 import com.biyong.open.server.utils.Utils.MessageCipher;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
@@ -42,6 +44,8 @@ public class HttpClient extends MessageCipher {
       connection.setRequestProperty(Utils.Headers.MerchantClient.name(), client);
       connection.setRequestProperty(Utils.Headers.RsaSignHashMode.name(), rsaSignHashMode);
       connection.setRequestProperty(Utils.Headers.AesEncryptMode.name(), aesMode);
+      connection.setConnectTimeout(5000);
+      connection.setReadTimeout(5000);
       connection.setDoOutput(true);
       DataOutputStream wr = new DataOutputStream(connection.getOutputStream());
       Utils.MerchantRequest r = clientEncrypt(data);
@@ -56,8 +60,8 @@ public class HttpClient extends MessageCipher {
                 CHARSET_UTF_8);
           default:
             // 封装了网络异常等错误
-            System.out.println(
-                new String(readInputStream(connection.getErrorStream()), CHARSET_UTF_8));
+            InputStream s = ofNullable(connection.getErrorStream()).orElse(connection.getInputStream());
+            System.out.println(new String(readInputStream(s), CHARSET_UTF_8));
             return wrapErrorMessage(responseCode);
         }
       } finally {

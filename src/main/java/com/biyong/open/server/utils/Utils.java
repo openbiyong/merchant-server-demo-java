@@ -54,7 +54,6 @@ public class Utils {
     System.out.println(keyPair.getPublic().toBase64String());
   }
 
-
   public static class MerchantRequest {
     long timestamp;
     byte[] msgId;
@@ -204,16 +203,23 @@ public class Utils {
       allowMode.add("CTR");
       allowMode.add("OFB");
       allowMode.add("PCBC");
-      allowMode.add("ECB");
+      allowMode.add("CBC");
       allowPadding = new HashSet<>();
       allowPadding.add("NoPadding");
-      allowPadding.add("PKCS1Padding");
       allowPadding.add("PKCS5Padding");
+      allowPadding.add("ISO10126Padding");
     }
 
     public static boolean isAllowMode(String mode) {
       String[] m = mode.split("/");
-      return m.length == 2 && allowMode.contains(m[0]) && allowPadding.contains(m[1]);
+      if (m.length != 2) {
+        return false;
+      }
+      if (m[0].equals("CTR") && m[1].equals("ISO10126Padding") ||
+          (m[1].equals("NoPadding") && (m[0].equals("PCBC") || m[0].equals("CBC")))) {
+        return false;
+      }
+      return allowMode.contains(m[0]) && allowPadding.contains(m[1]);
     }
 
     public static class KEY {
@@ -526,9 +532,9 @@ public class Utils {
 
   private static byte[] fromHex(String s) {
     int l = s.length();
-    byte[] bytes = new byte[l / 2];
-    for (int i = 0; i < l; i += 2) {
-      bytes[i / 2] = (byte)
+    byte[] bytes = new byte[l >> 1];
+    for (int i = 0, j = 0; i < l; i += 2) {
+      bytes[j++] = (byte)
           ((Character.digit(s.charAt(i), 16) << 4) +
            Character.digit(s.charAt(i + 1), 16));
     }
@@ -538,11 +544,11 @@ public class Utils {
   private final static char[] hexArray = "0123456789abcdef".toCharArray();
 
   private static String toHex(byte[] bytes) {
-    char[] hexChars = new char[bytes.length * 2];
-    for (int j = 0; j < bytes.length; j++) {
-      int v = bytes[j] & 0xFF;
-      hexChars[j * 2] = hexArray[v >>> 4];
-      hexChars[j * 2 + 1] = hexArray[v & 0x0F];
+    char[] hexChars = new char[bytes.length << 1];
+    for (int i = 0, j = 0; j < bytes.length; i += 2) {
+      int v = bytes[j++] & 0xFF;
+      hexChars[i] = hexArray[v >>> 4];
+      hexChars[i + 1] = hexArray[v & 0x0F];
     }
     return new String(hexChars);
   }
@@ -572,7 +578,7 @@ public class Utils {
   }
 
   public static long bytesToLong(byte[] b) {
-    return bytesToInt(b) * 0x100000000L + (longLowBytesToInt(b) & 0x00000000ffffffffL);
+    return ((long) bytesToInt(b) << 32) + (longLowBytesToInt(b) & 0x00000000ffffffffL);
   }
 
   public static int longLowBytesToInt(byte[] b) {
@@ -605,7 +611,13 @@ public class Utils {
   }
 
   private static byte[] getDataBy4BytesLength(byte[] data) {
+    if (data == null || data.length < 4) {
+      throw new CipherError("错误的data长度: <4");
+    }
     int l = bytesToInt(data);
+    if (l > data.length - 4 || l <= 0) {
+      throw new CipherError("错误的data长度:" + l);
+    }
     byte[] result = new byte[l];
     System.arraycopy(data, 4, result, 0, l);
     return result;

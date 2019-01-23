@@ -20,11 +20,11 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("user")
-public class DemoController {
+public class UserDemoController {
   private final BiYongMerchantService biYongMerchantService;
 
   @Autowired
-  public DemoController(BiYongMerchantService biYongMerchantService) {
+  public UserDemoController(BiYongMerchantService biYongMerchantService) {
     this.biYongMerchantService = biYongMerchantService;
   }
 
