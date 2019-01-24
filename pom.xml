@@ -5,7 +5,7 @@
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>com.biyong.open</groupId>
-  <artifactId>merchant-server-demo</artifactId>
+  <artifactId>merchant-demo</artifactId>
   <version>1.1.0</version>
 
   <parent>
