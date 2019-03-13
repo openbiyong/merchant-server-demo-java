@@ -42,7 +42,7 @@ public class BiYongMerchantServiceImpl implements BiYongMerchantService {
           appInfo.getPrivateKey(),
           appInfo.getAppId(),
           appInfo.getBiyongPublicKey(),
-          appInfo.getApiUrl().endsWith("/") ? appInfo.getApiUrl() : appInfo + "/",
+          appInfo.getApiUrl().endsWith("/") ? appInfo.getApiUrl() : appInfo.getApiUrl() + "/",
           "SHA256",
           // AES加密模式(设置为null不使用AES加密。正式环境采用https通信，非隐私数据接口建议关闭AES加密)
           null
